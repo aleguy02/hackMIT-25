@@ -2,6 +2,7 @@ import anthropic
 from dotenv import load_dotenv
 import os
 import json
+import re
 
 load_dotenv()
 
@@ -11,7 +12,7 @@ def normalize_component_types(adjacency_json_str: str) -> dict:
     )
 
     retries = 0
-    while retries < 3:
+    while retries < 5:
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
             max_tokens=20000,
@@ -30,15 +31,11 @@ def normalize_component_types(adjacency_json_str: str) -> dict:
             ]
         )
 
-        # message.content is a list of content blocks; extract the text from the first block
         try:
-            # print(isinstance(message.content, list))
-            # print(len(message.content) > 0)
-            # print(message.content[0].text)
-
             if isinstance(message.content, list) and len(message.content) > 0 and message.content[0].text:
                 res = {}
-                normalized_components = json.loads(message.content[0].text)
+                cleaned_text = re.sub(r"^```(?:json)?\s*|\s*```$", "", message.content[0].text.strip(), flags=re.DOTALL)
+                normalized_components = json.loads(cleaned_text)
                 res["success"] = True
                 res["components"] = normalized_components
                 return res
@@ -48,8 +45,9 @@ def normalize_component_types(adjacency_json_str: str) -> dict:
                 
         except json.JSONDecodeError as e:
             retries += 1
-            print("===" + "Exception occured while converting to JSON:", e, "===\n")
-
+            print("===", "Exception occured while converting to JSON:", e, "===\n")
+            print(message.content[0].text)
+            
         except Exception as e:
             print(f"!!! Unknown exception occured: {e} !!!")
             return {"success": False}

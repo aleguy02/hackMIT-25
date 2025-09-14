@@ -1,6 +1,6 @@
 from scripts.parse_xml import parse_diagram
 from scripts.normalize_component_types import normalize_component_types
-from templates.compose_templates import compose_config_factory
+from scripts.compose_templates import compose_config_factory
 import yaml
 import sys
 

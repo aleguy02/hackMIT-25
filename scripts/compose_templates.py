@@ -7,13 +7,7 @@ DOCKER_COMPOSE_TEMPLATES = {
         "container_name": "flask-backend",
         "restart": "always",
         "env_file": [".env"],
-        # "ports": ["5000:5000"],  # TODO: depends on if we use nginx or not?
         "networks": ["app-network"],
-        # "depends_on": {
-        #     "mysql": {
-        #         "condition": "service_healthy"
-        #     }
-        # }
     },
 
     "react-frontend": {
@@ -24,11 +18,7 @@ DOCKER_COMPOSE_TEMPLATES = {
         "container_name": "react-frontend",
         "restart": "always",
         "env_file": [".env"],
-        # Uncomment if you want to map port 3000 during dev
-        # "ports": ["3000:3000"],
         "networks": ["app-network"],
-        # Optional: depends on backend if needed
-        # "depends_on": ["flask-backend"]
     },
     
     "nginx": {
@@ -41,7 +31,6 @@ DOCKER_COMPOSE_TEMPLATES = {
             "./nginx_conf:/etc/nginx/user_conf.d"
         ],
         "networks": ["app-network"],
-        # "depends_on": ["flask-backend"]
     },
     
     "mysql": {
@@ -67,7 +56,6 @@ DOCKER_COMPOSE_TEMPLATES = {
     }
 }
 
-# Additional template configurations
 COMPOSE_METADATA = {
     "version": "3",
     "networks": {
