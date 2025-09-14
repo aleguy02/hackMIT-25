@@ -1,3 +1,7 @@
 .myenv
 
 *.xml
+
+__pycache__
+
+.env

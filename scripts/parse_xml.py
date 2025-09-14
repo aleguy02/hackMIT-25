@@ -1,7 +1,17 @@
+from re import A
 import xml.etree.ElementTree as ET
 from collections import defaultdict
+import json
 
-def parse_diagram(file_path):
+def _dict_to_escaped_json(adjacency: dict) -> str:
+    # Convert the adjacency list to a JSON string
+    json_str = json.dumps(adjacency)
+
+    # Escape all double quotes with a backslash
+    escaped_json_str = json_str.replace('"', '\\"')
+    return escaped_json_str
+
+def parse_diagram(file_path) -> str:
     tree = ET.parse(file_path)
     root = tree.getroot()
 
@@ -31,13 +41,14 @@ def parse_diagram(file_path):
         if src in id_to_name and tgt in id_to_name:
             adjacency[id_to_name[src]].append(id_to_name[tgt])
 
-    return dict(adjacency)
+    # print(dict(adjacency))
+
+    return _dict_to_escaped_json(adjacency)
 
 
-if __name__ == "__main__":
-    file_path = "foo.xml"  # replace with your XML file path
-    adjacency_list = parse_diagram(file_path)
+# if __name__ == "__main__":
+#     file_path = "foo.xml"  # replace with your XML file path
+#     adjacency_jsonStr = parse_diagram(file_path)
 
-    print("Adjacency List:")
-    for node, neighbors in adjacency_list.items():
-        print(f"{node} -> {neighbors}")
+#     print(adjacency_jsonStr)
+
