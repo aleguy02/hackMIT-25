@@ -40,12 +40,14 @@ graph LR
     D --> E[Run Containers!]
 ```
 
-Example component recognition:
+Supported components:
 
 * **Frontend** → `react-frontend`
 * **Backend** → `flask-backend`
 * **Proxy** → `nginx`
 * **Database** → `mysql`
+* **Cache** → `redis`
+* **Async Worker** → `rabbitmq`
 
 ## 🤝 Contributing
 
