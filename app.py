@@ -1,4 +1,4 @@
-from flask import Flask, request, render_template, jsonify, redirect, url_for
+from flask import Flask, request, render_template, jsonify, current_app
 import os
 import tempfile
 import yaml
@@ -39,23 +39,21 @@ def upload_file():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
 
-        # Process the pipeline
         try:
-            # Step 1: Parse XML diagram
             adjacency_json_str = parse_diagram(filepath)
+            current_app.logger.debug(f"adjacency_json_str: {adjacency_json_str}")
+            if adjacency_json_str == "{}":
+                return jsonify({'error': 'Please include at least 2 component.'}), 400
 
-            # Step 2: Normalize component types using Claude API
             obj = normalize_component_types(adjacency_json_str)
             if not obj["success"]:
                 return jsonify({'error': 'Please make sure all components are valid and try again.'}), 400
+            current_app.logger.debug(f"components: {obj["components"]}")
 
-            # Step 3: Generate compose configuration
             compose_conf = compose_config_factory(obj["components"])
 
-            # Convert to YAML string
             yaml_output = yaml.dump(compose_conf, default_flow_style=False, indent=2)
 
-            # Clean up temporary file
             try:
                 os.remove(filepath)
             except:
@@ -67,16 +65,16 @@ def upload_file():
             })
 
         except Exception as e:
-            # Clean up temporary file
+            current_app.logger.error(f"Exception occured (inner): {e}")
             try:
                 os.remove(filepath)
             except:
                 pass
-
-            # Return generic error message for Claude API failures or other errors
+            
             return jsonify({'error': 'Please make sure all components are valid and try again.'}), 500
 
     except Exception as e:
+        current_app.logger.error(f"Exception occured (outer): {e}")
         return jsonify({'error': 'Please make sure all components are valid and try again.'}), 500
 
 if __name__ == '__main__':

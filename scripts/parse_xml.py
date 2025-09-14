@@ -29,11 +29,14 @@ def parse_diagram(file_path) -> str:
             source = cell.get("source")
             target = cell.get("target")
             edges.append((source, target))
+            edges.append((target, None))
 
     adjacency = defaultdict(list)
     for src, tgt in edges:
         if src in id_to_name and tgt in id_to_name:
             adjacency[id_to_name[src]].append(id_to_name[tgt])
+        elif src in id_to_name and tgt is None:
+            adjacency[id_to_name[src]] 
 
 
     return _dict_to_escaped_json(adjacency)
