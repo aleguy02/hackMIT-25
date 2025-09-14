@@ -3,7 +3,7 @@
 *.xml
 *.drawio
 
-yaml/
+artifacts/
 
 __pycache__
 
