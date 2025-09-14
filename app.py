@@ -44,39 +44,35 @@ def upload_file():
         # === Generate unique job directory for artifacts ===
         JOB_DIR = os.path.join(app.config['UPLOAD_FOLDER'], str(uuid.uuid4()))
         os.makedirs(JOB_DIR)
-        
+
         xml_filename = secure_filename(file.filename)
         fp = os.path.join(JOB_DIR, xml_filename)
         file.save(fp)
 
-        try:
-            adjacency_json_str = parse_diagram(fp)
-            current_app.logger.debug(f"adjacency_json_str: {adjacency_json_str}")
-            if adjacency_json_str == "{}":
-                return jsonify({'error': 'Please include at least 2 component.'}), 400
+        adjacency_json_str = parse_diagram(fp)
+        current_app.logger.debug(f"adjacency_json_str: {adjacency_json_str}")
+        if adjacency_json_str == "{}":
+            return jsonify({'error': 'Please include at least 2 component.'}), 400
 
-            obj = normalize_component_types(adjacency_json_str)
-            if not obj["success"]:
-                return jsonify({'error': 'Please make sure all components are valid and try again.'}), 400
-            current_app.logger.debug(f"components: {obj["components"]}")
+        obj = normalize_component_types(adjacency_json_str)
+        if not obj["success"]:
+            return jsonify({'error': 'Please make sure all components are valid and try again.'}), 400
+        current_app.logger.debug(f"components: {obj["components"]}")
 
-            compose_conf = compose_config_factory(obj["components"])
+        compose_conf = compose_config_factory(obj["components"])
 
-            yaml_output = yaml.dump(compose_conf, default_flow_style=False, indent=2)
-            # Also write the YAML output to a file in the job directory
-            yaml_fp = os.path.join(JOB_DIR, 'compose.yaml')
-            with open(yaml_fp, 'w') as f:
-                f.write(yaml_output)
-            
-            # Success!
-            return jsonify({
-                'success': True,
-                'compose_yaml': yaml_output
-            })
+        yaml_output = yaml.dump(compose_conf, default_flow_style=False, indent=2)
+        # Also write the YAML output to a file in the job directory
+        yaml_fp = os.path.join(JOB_DIR, 'compose.yaml')
+        with open(yaml_fp, 'w') as f:
+            f.write(yaml_output)
+        
+        # Success!
+        return jsonify({
+            'success': True,
+            'compose_yaml': yaml_output
+        })
 
-        except Exception as e:
-            current_app.logger.error(f"Exception occured (inner): {e}")
-            return jsonify({'error': 'Please make sure all components are valid and try again.'}), 500
 
     except Exception as e:
         current_app.logger.error(f"Exception occured (outer): {e}")
