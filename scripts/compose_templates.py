@@ -53,6 +53,39 @@ DOCKER_COMPOSE_TEMPLATES = {
             "MYSQL_USER": "${MYSQL_USER}",
             "MYSQL_PASSWORD": "${MYSQL_PASSWORD}"
         }
+    },
+
+    "redis": {
+        "container_name": "redis",
+        "image": "redis:7-alpine",
+        "restart": "always",
+        "volumes": ["redis_data:/data"],
+        "networks": ["app-network"],
+        "healthcheck": {
+            "test": "redis-cli ping",
+            "interval": "30s",
+            "timeout": "10s",
+            "retries": 5,
+            "start_period": "30s"
+        },
+    },
+
+    "rabbitmq": {
+        "container_name": "rabbitmq",
+        "image": "rabbitmq:4-management",
+        "restart": "always",
+        "networks": ["app-network"],
+        "environment": {
+            "RABBITMQ_DEFAULT_USER": "${RABBITMQ_DEFAULT_USER}",
+            "RABBITMQ_DEFAULT_PASS": "${RABBITMQ_DEFAULT_PASS}"
+        },
+        "ports": ["15672:15672", "5672:5672"],
+        "healthcheck": {
+            "test": " rabbitmq-diagnostics -q ping",
+            "interval": "30s",
+            "timeout": "10s",
+            "retries": 3,
+        }
     }
 }
 
@@ -65,14 +98,15 @@ COMPOSE_METADATA = {
     },
     "volumes": {
         "mysql_data": None,
-        "nginx_secrets": None
+        "nginx_secrets": None,
+        "redis_data": None
     }
 }
 
 def compose_config_factory(components) -> dict:
     """
     Generate a Docker Compose service configuration.
-    Inputs: set of strings with the following possible values: react-frontend | flask-backend | nginx | mysql
+    Inputs: set of strings with the following possible values: react-frontend | flask-backend | nginx | mysql | redis | rabbitmq
     Outputs: json representation of compose.yaml file
     """
     components = list(components)
@@ -91,12 +125,18 @@ def compose_config_factory(components) -> dict:
     
 
     ## Dependencies
-    if "flask-backend" in components and "mysql" in components:
-        compose_services["flask-backend"]["depends_on"] = {
-            "mysql": {
-                "condition": "service_healthy"
-            }
-        }
+    backend_deps = {}
+    if "mysql" in components:
+        backend_deps["mysql"] = {"condition": "service_healthy"}
+    if "redis" in components:
+        backend_deps["redis"] = {"condition": "service_healthy"}
+        if "mysql" in components:
+            compose_services["redis"]["depends_on"] = {"mysql": {"condition": "service_healthy"}}
+    if "rabbitmq" in components:
+        backend_deps["rabbitmq"] = {"condition": "service_healthy"}
+
+    if "flask-backend" in components and backend_deps:
+        compose_services["flask-backend"]["depends_on"] = backend_deps
     
     if "nginx" not in components and "flask-backend" in components:
         compose_services["flask-backend"]["ports"] = ["5000:5000"]
@@ -113,6 +153,8 @@ def compose_config_factory(components) -> dict:
         compose_services["volumes"]["nginx_secrets"] = COMPOSE_METADATA["volumes"]["nginx_secrets"]
     if "mysql" in components:
         compose_services["volumes"]["mysql_data"] = COMPOSE_METADATA["volumes"]["mysql_data"]
+    if "redis" in components:
+        compose_services["volumes"]["redis_data"] = COMPOSE_METADATA["volumes"]["redis_data"]
 
     compose_config["services"] = compose_services    
     return compose_config
