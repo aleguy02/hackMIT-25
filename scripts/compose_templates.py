@@ -47,12 +47,6 @@ DOCKER_COMPOSE_TEMPLATES = {
             "retries": 5,
             "start_period": "30s"
         },
-        "environment": {
-            "MYSQL_ROOT_PASSWORD": "${MYSQL_ROOT_PASSWORD}",
-            "MYSQL_DATABASE": "${MYSQL_DATABASE}",
-            "MYSQL_USER": "${MYSQL_USER}",
-            "MYSQL_PASSWORD": "${MYSQL_PASSWORD}"
-        }
     },
 
     "redis": {
@@ -148,13 +142,13 @@ def compose_config_factory(components) -> dict:
     
     
     ## Volumes
-    compose_services["volumes"] = {}
+    compose_config["volumes"] = {}
     if "nginx" in components:
-        compose_services["volumes"]["nginx_secrets"] = COMPOSE_METADATA["volumes"]["nginx_secrets"]
+        compose_config["volumes"]["nginx_secrets"] = COMPOSE_METADATA["volumes"]["nginx_secrets"]
     if "mysql" in components:
-        compose_services["volumes"]["mysql_data"] = COMPOSE_METADATA["volumes"]["mysql_data"]
+        compose_config["volumes"]["mysql_data"] = COMPOSE_METADATA["volumes"]["mysql_data"]
     if "redis" in components:
-        compose_services["volumes"]["redis_data"] = COMPOSE_METADATA["volumes"]["redis_data"]
+        compose_config["volumes"]["redis_data"] = COMPOSE_METADATA["volumes"]["redis_data"]
 
     compose_config["services"] = compose_services    
     return compose_config
