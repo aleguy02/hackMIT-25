@@ -45,12 +45,10 @@ def normalize_component_types(adjacency_json_str: str) -> dict:
             else:
                 retries += 1
                 print("===", "Message content not in expected format:", message.content, "===\n")
-                continue
                 
         except json.JSONDecodeError as e:
             retries += 1
             print("===" + "Exception occured while converting to JSON:", e, "===\n")
-            continue
 
         except Exception as e:
             print(f"!!! Unknown exception occured: {e} !!!")

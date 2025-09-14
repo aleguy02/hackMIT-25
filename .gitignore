@@ -1,6 +1,9 @@
 .myenv
 
 *.xml
+*.drawio
+
+yaml/
 
 __pycache__
 
