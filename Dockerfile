@@ -1,4 +1,4 @@
-FROM python:3.13-slim-buster
+FROM python:3.13-slim
 
 WORKDIR /app
 
@@ -10,4 +10,4 @@ COPY . .
 
 CMD ["flask", "run", "--host=0.0.0.0"]
 
-EXPOSE 5000
+EXPOSE 3000
